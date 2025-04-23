@@ -1,38 +1,27 @@
-import { http, HttpResponse } from 'msw';
+import { rest } from 'msw';
 
 export const handlers = [
-  http.post('/api/login', async ({ request }) => {
-    const body = await request.json();
-    const { email, password } = body;
+  rest.get('/api/profile', (req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({ name: 'Usuario Test', email: 'test@test.com' })
+    );
+  }),
 
-    // Usuario simulado (puedes ajustar los valores)
+  rest.post('/api/login', async (req, res, ctx) => {
+    const { email, password } = await req.json();
     if (email === 'test@test.com' && password === '12345678') {
-      return HttpResponse.json({
-        token: 'fake-token-123',
-        user: { email, name: 'Usuario Test' },
-      });
+      return res(
+        ctx.status(200),
+        ctx.json({
+          token: 'fake-token-123',
+          user: { email, name: 'Usuario Test' },
+        })
+      );
     }
-
-    return HttpResponse.json(
-      { message: 'Credenciales incorrectas' },
-      { status: 401 }
+    return res(
+      ctx.status(401),
+      ctx.json({ message: 'Credenciales incorrectas' })
     );
-  }),
-
-  http.get('/api/profile', ({ request }) => {
-    const authHeader = request.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '').trim();
-
-    if (token === 'fake-token-123') {
-      return HttpResponse.json({
-        email: 'test@test.com',
-        name: 'Usuario Test',
-      });
-    }
-
-    return HttpResponse.json(
-      { message: 'No autorizado' },
-      { status: 401 }
-    );
-  }),
+  })
 ];
