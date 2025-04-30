@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom';
-import { server } from './mocks/server'; // Si estás usando MSW
+import { TextEncoder, TextDecoder } from 'util';
 
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
+

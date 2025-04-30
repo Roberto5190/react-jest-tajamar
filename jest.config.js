@@ -1,14 +1,16 @@
 
 export default {
-    preset: '@testing-library/react',
-    testEnvironment: 'jsdom',
-    transform: {
-      '^.+\\.jsx?$': 'babel-jest',
-    },
-    setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
-    testPathIgnorePatterns: ['/node_modules/', '/dist/'],
-    moduleFileExtensions: ['js', 'jsx', 'json', 'node'],
-    transformIgnorePatterns: ['/node_modules/(?!msw)'],
-}
-
+  testEnvironment: 'jsdom',
+  testEnvironmentOptions: {
+    customExportConditions: [''],
+  },
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.js'],
+  moduleNameMapper: {
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+  },
+  transform: {
+    '^.+\\.(js|jsx)$': 'babel-jest',
+  },
+  testMatch: ['**/__tests__/**/*.js?(x)', '**/?(*.)+(spec|test).js?(x)'],
+}; 
 

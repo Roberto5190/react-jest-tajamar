@@ -1,4 +1,5 @@
 import useAuth from "../../hooks/useAuth";
+import React from "react";
 
 // Estructura inicial (complétala con tu código)
 export default function LoginForm() {
