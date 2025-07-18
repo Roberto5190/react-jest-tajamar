@@ -1,42 +1,45 @@
-name: Deploy EC2
+name: Deploy SPA to EC2
 on:
   push:
-    branches: [main]          # despliega solo al hacer push a main
+    branches: [main]
+
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
-    # 1 ‑ Clona el repo
+    # 0. Selecciona la versión de Node que usa tu proyecto
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    # 1. Clona el repo
     - uses: actions/checkout@v4
 
-    # 2 ‑ Carga tu clave SSH privada en el agente
-    - name: Add SSH key
-      uses: webfactory/ssh-agent@v0.9.0
+    # 2. Instala dependencias y compila con Vite
+    - name: Install & build
+      run: |
+        npm ci
+        npm run build          # ⇒ ./dist
+
+    # 3. Añade la clave SSH (para rsync/ssh)
+    - uses: webfactory/ssh-agent@v0.9.0
       with:
         ssh-private-key: ${{ secrets.SSH_KEY }}
 
-    # 3 ‑ Copia el código (o el artefacto) a la EC2
-    - name: Rsync project to EC2
+    # 4. Sube solo la carpeta dist/ al DocumentRoot
+    - name: Rsync dist to Apache
       env:
-        HOST:  ${{ secrets.EC2_HOST }}     # p. ej. 54.123.45.67
-        USER:  ${{ secrets.EC2_USER }}     # p. ej. ubuntu
-        DEST:  ${{ vars.TARGET_DIR }}      # p. ej. /home/ubuntu/app
+        HOST: ${{ secrets.EC2_HOST }}
+        USER: ${{ secrets.EC2_USER }}
+        DEST: ${{ vars.TARGET_DIR }}      # p.ej. /var/www/html
       run: |
-        rsync -az --delete ./ "$USER@$HOST:$DEST"
+        rsync -az --delete ./dist/ "$USER@$HOST:$DEST"
 
-    # 4 ‑ Ejecuta comandos remotos (build, restart, etc.)
-    - name: Remote deploy script
+    # 5. Recarga Apache
+    - name: Reload Apache
       env:
-        HOST:  ${{ secrets.EC2_HOST }}
-        USER:  ${{ secrets.EC2_USER }}
-        DEST:  ${{ vars.TARGET_DIR }}
+        HOST: ${{ secrets.EC2_HOST }}
+        USER: ${{ secrets.EC2_USER }}
       run: |
-        ssh "$USER@$HOST" <<'EOF'
-        cd "$DEST"
-        # ejemplo con Docker Compose
-        docker compose pull
-        docker compose up -d --build
-        # o simplemente: sudo systemctl restart mi‑servicio.service
-        EOF
-
+        ssh "$USER@$HOST" 'sudo systemctl reload apache2'
