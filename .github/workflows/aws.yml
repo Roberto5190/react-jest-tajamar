@@ -35,7 +35,10 @@ jobs:
         USER: ${{ secrets.EC2_USER }}
         DEST: ${{ vars.TARGET_DIR }}      # p.ej. /var/www/html
       run: |
-        rsync -az --delete ./dist/ "$USER@$HOST:$DEST"
+        rsync -az --delete \
+          --omit-owner --omit-group          \  # evita chown/chgrp
+          --rsync-path="sudo rsync"          \  # sudo en la EC2
+          ./dist/ "$USER@$HOST:$DEST"
 
     # 5. Recarga Apache
     - name: Reload Apache
