@@ -36,8 +36,8 @@ jobs:
         DEST: ${{ vars.TARGET_DIR }}      # p.ej. /var/www/html
       run: |
         rsync -az --delete \
-          --omit-owner --omit-group          \  # evita chown/chgrp
-          --rsync-path="sudo rsync"          \  # sudo en la EC2
+          --no-owner --no-group \
+          --rsync-path="sudo rsync" \
           ./dist/ "$USER@$HOST:$DEST"
 
     # 5. Recarga Apache
